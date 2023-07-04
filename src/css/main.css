@@ -1,0 +1,68 @@
+.cat-box {
+    display: flex;
+    gap: 24px;
+  
+    margin-top: 10px;
+  }
+  
+  .info {
+    flex-basis: calc(100% - 24px);
+  }
+  
+  p {
+    font-size: 24px;
+    line-height: 1.2;
+  }
+  
+  .loader {
+    color: black;
+    display: block;
+    position: relative;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 24px;
+    letter-spacing: 4px;
+    box-sizing: border-box;
+  }
+  .loader::before {
+    content: '';
+    position: absolute;
+    left: 71px;
+    bottom: 7px;
+    height: 12px;
+    width: 4px;
+    outline: 1px solid black;
+    color: #ff3d00;
+    box-sizing: border-box;
+    animation: animloader1 1s linear infinite alternate;
+  }
+  .loader::after {
+    content: '';
+    width: 3px;
+    height: 3px;
+    background: #ff3d00;
+    position: absolute;
+    left: 71.5px;
+    top: 8px;
+    box-sizing: border-box;
+    animation: animloader 1s ease-out infinite alternate;
+  }
+  
+  @keyframes animloader {
+    0% {
+      top: 4px;
+      transform: rotate(0deg) scale(1);
+    }
+    100% {
+      top: -3px;
+      transform: rotate(180deg) scale(1.5);
+    }
+  }
+  
+  @keyframes animloader1 {
+    0% {
+      box-shadow: 0 0 inset;
+    }
+    100% {
+      box-shadow: 0 -28px inset;
+    }
+  }
