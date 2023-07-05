@@ -1,51 +1,64 @@
-import { Notify } from 'notiflix';
-import { fetchBreeds, fetchCatByBreed } from './js/cat-api.js';
+ import { fetchBreeds, fetchCatByBreed } from "./js/cat-api";
+import './css/main.css';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import SlimSelect from 'slim-select'
+import 'slim-select/dist/slimselect.css';
 
-const breedSelect = document.querySelector('.breed-select');
-const catInfo = document.querySelector('.cat-info');
-const loaderMessage = document.querySelector('.loader');
+const ref = {
+    selector: document.querySelector('.breed-select'),
+    divCatInfo: document.querySelector('.cat-info'),
+    loader: document.querySelector('.loader'),
+    error: document.querySelector('.error'),
+};
+const { selector, divCatInfo, loader, error } = ref;
 
-Notify.init({  
-  failure: {
-    notiflixIconColor: 'white',
-  }
-});
+loader.classList.replace('loader', 'is-hidden');
+error.classList.add('is-hidden');
+divCatInfo.classList.add('is-hidden');
 
-breedSelect.style.display = 'none';
+let arrBreedsId = [];
 fetchBreeds()
-    .then(cats => {
-        loaderMessage.style.display = 'none';
-        breedSelect.style.display = 'block';
-        
-        const markup = cats.map(({ id, name }) => `<option value="${id}">${name}</option>`).join('');
-        breedSelect.insertAdjacentHTML('beforeend', markup);
+.then(data => {
+    data.forEach(element => {
+        arrBreedsId.push({text: element.name, value: element.id});
+    });
+    new SlimSelect({
+        select: selector,
+        data: arrBreedsId
+    });
     })
-    .catch(() => Notify.failure('Oops! Something went wrong! Try reloading the page!'));
+.catch(onFetchError);
 
+selector.addEventListener('change', onSelectBreed);
 
-breedSelect.addEventListener('input', (e) => {
-    loaderMessage.style.display = 'block';
+function onSelectBreed(event) {
+    loader.classList.replace('is-hidden', 'loader');
+    selector.classList.add('is-hidden');
+    divCatInfo.classList.add('is-hidden');
 
-    const prevCat = document.querySelector('.cat-box');
-    if (prevCat)
-        prevCat.remove();
+    const breedId = event.currentTarget.value;
+    fetchCatByBreed(breedId)
+    .then(data => {
+        loader.classList.replace('loader', 'is-hidden');
+        selector.classList.remove('is-hidden');
+        const { url, breeds } = data[0];
+        
+        divCatInfo.innerHTML = `<div class="box-img"><img src="${url}" alt="${breeds[0].name}" width="400"/></div><div class="box"><h1>${breeds[0].name}</h1><p>${breeds[0].description}</p><p><b>Temperament:</b> ${breeds[0].temperament}</p></div>`
+        divCatInfo.classList.remove('is-hidden');
+    })
+    .catch(onFetchError);
+};
 
-    const option = breedSelect.options[breedSelect.selectedIndex].value;
-    fetchCatByBreed(option)
-        .then(cats => {
-            loaderMessage.style.display = 'none';
+function onFetchError(error) {
+    selector.classList.remove('is-hidden');
+    loader.classList.replace('loader', 'is-hidden');
 
-            const markup = cats.map(cat =>
-                `<div class="cat-box">
-                    <img src="${cat.url}" width="360" />
-                    <div class="info">
-                        <h1>${cat.breeds[0].name}</h1>
-                        <p>${cat.breeds[0].description}</p>
-                        <p><b>Temperament: </b>${cat.breeds[0].temperament}</p>   
-                    </div>
-                </div>`
-            ).join('');
-            catInfo.insertAdjacentHTML('beforeend', markup);
-        })
-        .catch(() => Notify.failure('Oops! Something went wrong! Try reloading the page!'));
-});
+    Notify.failure('Oops! Something went wrong! Try reloading the page or select another cat breed!', {
+        position: 'center-center',
+        timeout: 5000,
+        width: '400px',
+        fontSize: '24px'
+    });
+};
+   
+
